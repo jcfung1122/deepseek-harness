@@ -24,7 +24,8 @@
 
 import { createRequire } from 'node:module'
 import {
-  existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, symlinkSync, unlinkSync, writeFileSync,
+  copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync,
+  realpathSync, rmSync, symlinkSync, unlinkSync, writeFileSync,
 } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
@@ -167,6 +168,38 @@ export function initProfile(dir: string, bundles: readonly string[]): void {
   if (!existsSync(workspacePath)) writeFileSync(workspacePath, PROFILE_PNPM_WORKSPACE)
 }
 
+/** Recursively materialize `target` as a real directory at `link` (no reparse points). */
+function copyDirFallback(target: string, link: string): void {
+  mkdirSync(link, { recursive: true })
+  for (const entry of readdirSync(target, { withFileTypes: true })) {
+    // Hoisted installs resolve every dependency through the flat fallback
+    // itself; a package's own node_modules would only reintroduce reparse
+    // points (workspace links) and blow the copy up. Skip it.
+    if (entry.name === 'node_modules') continue
+    const src = join(target, entry.name)
+    const dest = join(link, entry.name)
+    if (entry.isDirectory()) {
+      copyDirFallback(src, dest)
+    } else if (entry.isFile()) {
+      copyFileSync(src, dest)
+    } else if (entry.isSymbolicLink()) {
+      // Copy through the link: read what it points to, never recreate it.
+      let resolved: string
+      try {
+        resolved = realpathSync(src)
+      } catch {
+        continue // dangling link — nothing to copy
+      }
+      try {
+        if (lstatSync(resolved).isDirectory()) copyDirFallback(resolved, dest)
+        else copyFileSync(resolved, dest)
+      } catch {
+        continue // unreadable link target — nothing to copy
+      }
+    }
+  }
+}
+
 /** Ensure `link` is a symlink to `target`, replacing a wrong or dangling link; a real directory throws. */
 function ensureSymlink(link: string, target: string): void {
   let stat
@@ -178,23 +211,43 @@ function ensureSymlink(link: string, target: string): void {
     stat = undefined
   }
   if (stat !== undefined) {
-    if (!stat.isSymbolicLink()) {
+    if (stat.isSymbolicLink()) {
+      if (readlinkSync(link) === target) return
+      // unlink deletes the reparse point itself on Windows too; rmSync treats a
+      // junction as a directory and throws EISDIR unless recursive.
+      unlinkSync(link)
+    } else if (stat.isDirectory()) {
+      // Copy-based fallback left by a previous run on hosts where reparse
+      // points (symlinks/junctions) are unavailable. Keep it as-is.
+      if (existsSync(join(link, 'package.json'))) return
+      // A directory without a package manifest is a partial copy from an
+      // interrupted run; drop it and materialize it again below.
+      rmSync(link, { recursive: true, force: true })
+    } else {
       throw new Error(`dsh: ${link} exists and is not a symlink; remove it so dsh can manage the installation fallback`)
     }
-    if (readlinkSync(link) === target) return
-    // unlink deletes the reparse point itself on Windows too; rmSync treats a
-    // junction as a directory and throws EISDIR unless recursive.
-    unlinkSync(link)
   }
   try {
     symlinkSync(target, link, 'junction')
   } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    if (code === 'EPERM' || code === 'EACCES') {
+      // Host denies reparse-point creation (e.g. restrictive Windows policy):
+      // materialize the package as a real directory copy. Pure file I/O only.
+      try {
+        copyDirFallback(target, link)
+        return
+      } catch (copyError) {
+        console.error(`dsh: copy fallback failed for ${link} <- ${target}: ${String(copyError)}`)
+        // fall through to the original error
+      }
+    }
     // Concurrent launches heal the same fallback; losing the race to a
     // process writing the identical link is success, anything else is not.
     // The window between the lstat miss above and this write cannot be
     // staged deterministically from the public API.
     /* v8 ignore next 4 */
-    if ((error as NodeJS.ErrnoException).code !== 'EEXIST'
+    if (code !== 'EEXIST'
       || !lstatSync(link).isSymbolicLink() || readlinkSync(link) !== target) {
       throw error
     }
