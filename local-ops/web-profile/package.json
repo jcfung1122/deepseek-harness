@@ -7,6 +7,8 @@
     "@nanmicoder/dsh-agent-teams": "^0.1.5",
     "dsh-better-sidebar": "^0.12.2",
     "dsh-harness-zh-cn": "^0.1.2",
+    "dsh-notification": "github:omdsh-dev/dsh-notification",
+    "dsh-tokenledger": "^0.1.0",
     "dshmarket": "^1.8.0"
   },
   "dsh": {
@@ -19,7 +21,9 @@
         "@nanmicoder/dsh-agent-teams",
         "dsh-better-sidebar",
         "dshmarket",
-        "dsh-harness-zh-cn"
+        "dsh-harness-zh-cn",
+        "dsh-notification",
+        "dsh-tokenledger"
       ]
     }
   }

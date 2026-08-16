@@ -23,6 +23,12 @@ importers:
       dsh-harness-zh-cn:
         specifier: ^0.1.2
         version: 0.1.2
+      dsh-notification:
+        specifier: github:omdsh-dev/dsh-notification
+        version: https://codeload.github.com/omdsh-dev/dsh-notification/tar.gz/2399457a1f96ed86f761f3bc771539d131eb684f
+      dsh-tokenledger:
+        specifier: ^0.1.0
+        version: 0.1.0(@deepseek-ai/schemastery@3.18.1)
       dshmarket:
         specifier: ^1.8.0
         version: 1.8.0
@@ -271,6 +277,48 @@ packages:
       '@deepseek-ai/cordis': ^4.0.1
       '@deepseek-ai/dsh-system-prompt': ^0.1.0-rc.6
 
+  dsh-notification@https://codeload.github.com/omdsh-dev/dsh-notification/tar.gz/2399457a1f96ed86f761f3bc771539d131eb684f:
+    resolution: {gitHosted: true, tarball: https://codeload.github.com/omdsh-dev/dsh-notification/tar.gz/2399457a1f96ed86f761f3bc771539d131eb684f}
+    version: 0.1.2
+    peerDependencies:
+      '@deepseek-ai/cordis': '*'
+      '@deepseek-ai/dsh-client-locale': '*'
+      '@deepseek-ai/dsh-client-runtime': '*'
+      '@deepseek-ai/dsh-client-ui-settings': '*'
+      '@deepseek-ai/dsh-client-ui-slots': '*'
+      '@deepseek-ai/dsh-invariants': '*'
+      '@deepseek-ai/dsh-session': '*'
+      '@deepseek-ai/dsh-session-projection': '*'
+      react: ^18.2.0
+    peerDependenciesMeta:
+      '@deepseek-ai/cordis':
+        optional: true
+      '@deepseek-ai/dsh-client-locale':
+        optional: true
+      '@deepseek-ai/dsh-client-runtime':
+        optional: true
+      '@deepseek-ai/dsh-client-ui-settings':
+        optional: true
+      '@deepseek-ai/dsh-client-ui-slots':
+        optional: true
+      '@deepseek-ai/dsh-invariants':
+        optional: true
+      '@deepseek-ai/dsh-session':
+        optional: true
+      '@deepseek-ai/dsh-session-projection':
+        optional: true
+      react:
+        optional: true
+
+  dsh-tokenledger@0.1.0:
+    resolution: {integrity: sha512-UX8dEINaNqJO0qGOfo5MSt5F7HKNWxLaQUK/JMLTMb2UPybhI56OLHyYGdA33RB15NhW/YUpkvcpwB/Dv9mG0g==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      '@deepseek-ai/schemastery': ^3.18.1
+    peerDependenciesMeta:
+      '@deepseek-ai/schemastery':
+        optional: true
+
   dshmarket@1.8.0:
     resolution: {integrity: sha512-912zJl4gAEAZkqPyA2JDICnrWVR1A1Yyho4Km88lAxdGO/19U3bkTVxn1PmdDpVxuQggFTZrfVMtdKVnnPnDag==}
     peerDependencies:
@@ -312,6 +360,9 @@ packages:
   xterm@5.3.0:
     resolution: {integrity: sha512-8QqjlekLUFTrU6x7xck1MsPzPA571K5zNqWm0M0oroYEWVOptZ0+ubQSkQ3uxIEhcIHRujJy6emDWX4A7qyFzg==}
     deprecated: This package is now deprecated. Move to @xterm/xterm instead.
+
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
 
@@ -644,6 +695,14 @@ snapshots:
       - '@deepseek-ai/dsh-invariants'
       - '@deepseek-ai/dsh-timeout'
 
+  dsh-notification@https://codeload.github.com/omdsh-dev/dsh-notification/tar.gz/2399457a1f96ed86f761f3bc771539d131eb684f:
+    dependencies:
+      zod: 4.4.3
+
+  dsh-tokenledger@0.1.0(@deepseek-ai/schemastery@3.18.1):
+    optionalDependencies:
+      '@deepseek-ai/schemastery': 3.18.1
+
   dshmarket@1.8.0: {}
 
   node-addon-api@7.1.1: {}
@@ -670,3 +729,5 @@ snapshots:
   ws@8.21.3: {}
 
   xterm@5.3.0: {}
+
+  zod@4.4.3: {}
