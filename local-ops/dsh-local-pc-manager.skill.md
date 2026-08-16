@@ -18,7 +18,7 @@ whenToUse: 用户要求启动、重启、停止或关闭 DSH Web 服务，检查
 | Node | C:\Program Files\nodejs\node.exe（PATH 上有 node） |
 | pnpm | C:\Users\Administrator\AppData\Roaming\npm\pnpm.cmd |
 | Windows Terminal | E:\Microsoft.WindowsTerminal_1.24.11321.0_x64\terminal-1.24.11321.0\wt.exe |
-| PowerShell | 仅 5.1（无 pwsh 7）；ExecutionPolicy Restricted：.ps1 禁跑，-Command / -EncodedCommand 可用 |
+| PowerShell | pwsh 7.6.5 已装（winget→Store/MSIX，别名 `C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps\pwsh.exe`）；`settings.yaml` 已设 `bash.pwshPath` 指向它；**需重启 DSH Web 后 pwsh 工具才解析到 7**（执行器启动时解析一次）。系统内置 5.1 仍在：ExecutionPolicy Restricted，.ps1 禁跑，-Command/-EncodedCommand 可用 |
 | 代码页 | 系统 ACP/OEMCP=936（GBK），Windows Terminal ConPTY 按 UTF-8 → **.cmd/.bat 中禁止直写中文** |
 
 ## 资产清单
