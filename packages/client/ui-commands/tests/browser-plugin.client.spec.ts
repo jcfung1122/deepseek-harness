@@ -11,14 +11,18 @@ import { describe, expect, it } from 'vitest'
 import { createScope, scopeOf, SlotRegistry } from '@deepseek-ai/dsh-client-runtime/client'
 import type { SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import type { InputTriggerSource } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
+import type { CommandDescriptor } from '@deepseek-ai/dsh-commands/types'
 import type { CommandUiContract } from '../src/client/contract.ts'
 import type { PopupSelectInjected } from '../src/client/PopupSelectView.tsx'
 import { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
+import { usePinnedBrowserLanguages } from '@deepseek-ai/dsh-client-test-runtime'
 import { apply, CommandUiRuntime, inject } from '../src/client/index.ts'
+
+usePinnedBrowserLanguages('zh-CN')
 
 const sid = (k: string): SessionId => k as SessionId
 
-async function bench() {
+async function bench(commands: readonly CommandDescriptor[] = []) {
   const ctx = new Context()
   const sources = new Map<string, InputTriggerSource>()
   ctx.provide('inputTriggers', {
@@ -31,8 +35,9 @@ async function bench() {
   ctx.provide('sessions', {
     scope: (id: SessionId) => scopes.get(id),
     scopeOf: (c: Context) => scopeOf(c),
+    subagentAddress: () => undefined,
   })
-  const commandsRemote = { list: () => Promise.resolve([]) }
+  const commandsRemote = { list: () => Promise.resolve({ ok: true as const, value: commands }) }
   // The service subscribes its cache-invalidation events on construction, so
   // the Remote face needs `$on` even where this spec dispatches none.
   ctx.provide('remote', { commands: commandsRemote, $on: () => () => {} })
@@ -80,5 +85,31 @@ describe('apply', () => {
     const injectEntry = entry.inject as unknown as (sessionId: SessionId) => PopupSelectInjected
     expect(injectEntry(sid('s1')).popup).toBe(command.popupFor(scope.ctx))
     expect(() => injectEntry(sid('ghost'))).toThrow(/resolved no scope/)
+  })
+
+  it('translates host command descriptions through the active locale and falls back to the host text', async () => {
+    const { ctx, sources } = await bench([
+      { name: 'goal', description: 'set or view the goal' },
+      { name: 'plan', description: 'enter or leave plan mode' },
+    ])
+    const source = sources.get('/ command')
+    if (source === undefined) throw new Error('command source not registered')
+    const request = { query: '', position: 'leading' as const, signal: new AbortController().signal }
+
+    // zh (pinned): every known command resolves its Chinese overlay.
+    const zhRows = await source.candidates({ sessionId: sid('s1') }, request)
+    expect(zhRows).toEqual([
+      { name: 'goal', description: '设置或查看长期任务的目标' },
+      { name: 'plan', description: '进入或退出计划模式' },
+    ])
+
+    // English falls through to the host description.
+    const locale = ctx.get('locale') as LocaleRuntime
+    locale.setLocale('en')
+    const enRows = await source.candidates({ sessionId: sid('s1') }, request)
+    expect(enRows).toEqual([
+      { name: 'goal', description: 'set or view the goal' },
+      { name: 'plan', description: 'enter or leave plan mode' },
+    ])
   })
 })

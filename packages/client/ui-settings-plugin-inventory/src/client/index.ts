@@ -4,6 +4,7 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { PluginInventorySettingsTab, type PluginInventorySettingsTabInjected } from './PluginInventorySettingsTab.tsx'
+import { PLUGIN_CATALOG } from './catalog.ts'
 import { en, zh, type PluginInventoryLocaleKey } from './locales.ts'
 
 export type { PluginInventorySettingsTabInjected, PluginInventorySettingsTabProps } from './PluginInventorySettingsTab.tsx'
@@ -34,7 +35,21 @@ export function apply(ctx: ClientContext): void {
     }
     return result.value
   }
-  const injected = (): PluginInventorySettingsTabInjected => ({ list })
+  const describe: PluginInventorySettingsTabInjected['describe'] = (moduleName) => {
+    const entry = PLUGIN_CATALOG[moduleName]
+    if (entry === undefined) return undefined
+    const zh = ctx.locale.getLocale().active === 'zh'
+    return { name: zh ? entry.name.zh : entry.name.en, summary: zh ? entry.summary.zh : entry.summary.en }
+  }
+  const setEnabled: PluginInventorySettingsTabInjected['setEnabled'] = async (entryId, enabled) => {
+    const result = await ctx.remote.pluginInventory.setEnabled(entryId, enabled)
+    if (!result.ok) {
+      // The Host message is the user-relevant reason (e.g. a plugin whose apply
+      // fails because the deployment lacks --expose-internals); surface it.
+      throw new Error(result.error.message)
+    }
+  }
+  const injected = (): PluginInventorySettingsTabInjected => ({ list, describe, setEnabled })
 
   ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
     name: 'settings.plugins.tab',

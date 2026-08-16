@@ -111,7 +111,9 @@ describe('web e2e: settings modal and General preferences', () => {
       .toBe(String(expectedPluginCount))
     expect(await dialog.getByRole('button', { name: '插件', exact: true }).getAttribute('aria-current')).toBe('true')
     expect(await dialog.getByRole('tab', { name: '插件列表', exact: true }).getAttribute('aria-selected')).toBe('true')
-    expect(await dialog.getByRole('button', { name: '模型' }).getAttribute('aria-current')).toBeNull()
+    // The plugin list renders localized card names (模型设置, 大模型能力, …) that
+    // share the 模型 substring with the Models nav cell; pin the exact name.
+    expect(await dialog.getByRole('button', { name: '模型', exact: true }).getAttribute('aria-current')).toBeNull()
     const pluginsSnapshot = await captureStableAria(
       page,
       PLUGIN_ROW_SELECTOR,

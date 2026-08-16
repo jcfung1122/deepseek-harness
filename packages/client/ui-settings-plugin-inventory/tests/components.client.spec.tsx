@@ -11,12 +11,23 @@ import { en, type PluginInventoryLocaleKey } from '../src/client/locales.ts'
 afterEach(cleanup)
 
 type Snapshot = Awaited<ReturnType<PluginInventorySettingsTabInjected['list']>>
-const t = ((key: PluginInventoryLocaleKey): string => en[key]) as PluginInventorySettingsTabProps['t']
+const t = ((key: PluginInventoryLocaleKey, params?: Record<string, unknown>): string => {
+  const template = en[key]
+  if (params === undefined) return template
+  return template.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in params ? String(params[name]) : match)
+}) as PluginInventorySettingsTabProps['t']
 
-function props(list: PluginInventorySettingsTabInjected['list']): PluginInventorySettingsTabProps {
+function props(
+  list: PluginInventorySettingsTabInjected['list'],
+  overrides: Partial<PluginInventorySettingsTabInjected> = {},
+): PluginInventorySettingsTabProps {
   return {
     t,
     list,
+    describe: () => undefined,
+    setEnabled: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
   } as PluginInventorySettingsTabProps
 }
 
@@ -45,8 +56,8 @@ describe('PluginInventorySettingsTab', () => {
     expect(screen.getByRole('heading', { name: en.catalog })).toBeTruthy()
     expect(view.container.querySelector('[data-plugin-count]')?.textContent).toBe('7')
     expect(screen.getAllByRole('listitem')).toHaveLength(7)
-    expect(screen.getAllByText(en.enabledTag)).toHaveLength(6)
-    expect(screen.getByText(en.disabledTag)).toBeTruthy()
+    expect(screen.getAllByRole('switch', { checked: true })).toHaveLength(6)
+    expect(screen.getAllByRole('switch', { checked: false })).toHaveLength(1)
     for (const value of [
       'Mounted',
       'Waiting for dependencies',
@@ -73,7 +84,7 @@ describe('PluginInventorySettingsTab', () => {
     })
     expect(view.container.querySelector('[data-loader-entry]')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'directory-picker-native, Disabled' }))
-    expect(screen.getAllByText(en.disabledTag)).toHaveLength(2)
+    expect(screen.getAllByText(en.disabledTag)).toHaveLength(1)
     expect(screen.queryByText(en.cordis)).toBeNull()
     expect(screen.queryByText(en.unobserved)).toBeNull()
   })
@@ -123,5 +134,54 @@ describe('PluginInventorySettingsTab', () => {
     const pendingFailure = render(<PluginInventorySettingsTab {...props(() => deferredFailure.promise)} />)
     pendingFailure.unmount()
     await act(async () => { deferredFailure.reject(new Error('late failure')) })
+  })
+
+  it('renders the localized name and summary and falls back to the short name', async () => {
+    const describe = vi.fn((moduleName: string) => moduleName === '@deepseek-ai/dsh-session'
+      ? { name: '会话', summary: '会话数据、持久化与投影。' }
+      : undefined)
+    render(<PluginInventorySettingsTab {...props(async () => SNAPSHOT, { describe })} />)
+
+    // The disabled fixture uses an unmapped module name, so it keeps the short name.
+    expect(await screen.findByText('directory-picker-native')).toBeTruthy()
+    // Every card renders a toggle switch with its enabled state.
+    expect(screen.getAllByRole('switch')).toHaveLength(7)
+    expect(screen.getAllByRole('switch', { checked: true })).toHaveLength(6)
+    expect(screen.getAllByRole('switch', { checked: false })).toHaveLength(1)
+  })
+
+  it('shows the summary from describe for a mapped module', async () => {
+    const describe = vi.fn((moduleName: string) => moduleName === '@deepseek-ai/cordis-plugin-hmr'
+      ? { name: '热更新', summary: '模块热更新与配置热重载。' }
+      : undefined)
+    render(<PluginInventorySettingsTab {...props(async () => SNAPSHOT, { describe })} />)
+
+    expect(await screen.findByText('热更新')).toBeTruthy()
+    expect(screen.getByText('模块热更新与配置热重载。')).toBeTruthy()
+  })
+
+  it('toggles one entry and refreshes the snapshot on success', async () => {
+    const list = vi.fn<PluginInventorySettingsTabInjected['list']>().mockResolvedValue(SNAPSHOT)
+    const setEnabled = vi.fn<PluginInventorySettingsTabInjected['setEnabled']>().mockResolvedValue(undefined)
+    render(<PluginInventorySettingsTab {...props(list, { setEnabled })} />)
+
+    await screen.findAllByRole('switch')
+    const disabledSwitch = screen.getAllByRole('switch', { checked: false })[0]!
+    await act(async () => { fireEvent.click(disabledSwitch) })
+    expect(setEnabled).toHaveBeenCalledWith('disabled-entry', true)
+    await waitFor(() => { expect(list).toHaveBeenCalledTimes(2) })
+  })
+
+  it('surfaces a toggle failure with its specific reason without crashing the list', async () => {
+    const setEnabled = vi.fn<PluginInventorySettingsTabInjected['setEnabled']>()
+      .mockRejectedValueOnce(new Error('private toggle detail'))
+    render(<PluginInventorySettingsTab {...props(async () => SNAPSHOT, { setEnabled })} />)
+
+    await screen.findAllByRole('switch')
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole('switch', { checked: false })[0]!)
+    })
+    expect(await screen.findByRole('alert')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toContain('private toggle detail')
   })
 })

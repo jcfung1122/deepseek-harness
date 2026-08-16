@@ -30,6 +30,9 @@ python/sdk-runtime/src/deepseek_harness_runtime/runtime/dsh-jsonrpc-agent-*
 python/sdk-runtime/src/deepseek_harness_runtime/runtime/node/
 python/**/__pycache__/
 python/**/.pytest_cache/
+python/bin/
+python/_cache/
+python/pythoncore-3.14-64/
 apps/web/dist/
 .artifacts/
 .playwright-mcp/

@@ -20,6 +20,9 @@ export const zh = {
   active: '已挂载',
   failed: '挂载失败',
   unloading: '卸载中',
+  toggleAria: '切换「{name}」',
+  toggleFailed: '切换插件失败，请重试。',
+  toggleFailedDetail: '切换插件失败：{detail}',
 } satisfies Record<string, string>
 
 /** Plugin inventory locale key union. */
@@ -45,4 +48,7 @@ export const en = {
   active: 'Mounted',
   failed: 'Mount failed',
   unloading: 'Unloading',
+  toggleAria: 'Toggle "{name}"',
+  toggleFailed: 'Failed to switch the plugin; please retry.',
+  toggleFailedDetail: 'Failed to switch the plugin: {detail}',
 } satisfies Record<PluginInventoryLocaleKey, string>

@@ -61,6 +61,17 @@ interface RankedCandidate {
   readonly score: number
 }
 
+/** Configuration the ui-commands plugin injects into the runtime. */
+export interface CommandUiConfig {
+  /**
+   * Optional locale-aware description override for one host command name; the
+   * host catalog's English description is the fallback. Returns undefined when
+   * the name has no localized copy. Read at candidate time so a locale switch
+   * reaches the next menu pass.
+   */
+  readonly describe?: (name: string) => string | undefined
+}
+
 /** Extra weight for command-name starts and separator boundaries. */
 function boundaryBonus(name: string, index: number): number {
   return index === 0 || name.charAt(index - 1) === '-' || name.charAt(index - 1) === '_' ? 8 : 0
@@ -126,8 +137,9 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
   /**
    * @param ctx - owning root context (plugin fiber; the service registers
    * itself as `command` and follows that fiber's lifetime).
+   * @param config - locale-aware description overrides and other runtime config.
    */
-  constructor(ctx: Context) {
+  constructor(ctx: Context, private readonly config: CommandUiConfig = {}) {
     super(ctx, 'commandUi')
     this.directory = new CommandDirectory(async (sessionId) => {
       if (this.sessions().subagentAddress(sessionId) !== undefined) return []
@@ -246,7 +258,7 @@ export class CommandUiRuntime extends Service implements CommandUiContract {
     const seen = new Set<string>()
     for (const c of list) {
       seen.add(c.name)
-      rows.push({ name: c.name, description: c.description, ...(c.input !== undefined ? { hint: c.input.hint } : {}) })
+      rows.push({ name: c.name, description: this.config.describe?.(c.name) ?? c.description, ...(c.input !== undefined ? { hint: c.input.hint } : {}) })
     }
     for (const contribution of this.live.contributions.values()) {
       if (!contribution.available(session)) continue

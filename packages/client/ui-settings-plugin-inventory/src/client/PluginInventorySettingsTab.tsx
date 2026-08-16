@@ -12,6 +12,10 @@ import css from './PluginInventorySettingsTab.module.css'
 export interface PluginInventorySettingsTabInjected {
   /** Read a current Host inventory snapshot. */
   list: () => Promise<PluginInventorySnapshot>
+  /** Resolve a localized display name and summary for one module specifier. */
+  describe: (moduleName: string) => { name: string; summary: string } | undefined
+  /** Hot-swap one entry at runtime: enable or disable it. */
+  setEnabled: (entryId: string, enabled: boolean) => Promise<void>
 }
 
 type PluginInventoryEntry = PluginInventorySnapshot['entries'][number]
@@ -60,12 +64,14 @@ function matches(entry: PluginInventoryEntry, normalizedQuery: string): boolean 
     .some(value => value.toLocaleLowerCase().includes(normalizedQuery))
 }
 
-/** Render the read-only current Loader inventory. */
-export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsTabProps): ReactNode {
+/** Render the current Loader inventory with a per-entry hot-swap toggle. */
+export function PluginInventorySettingsTab({ list, describe, setEnabled, t }: PluginInventorySettingsTabProps): ReactNode {
   const catalogId = useId()
   const [request, setRequest] = useState(0)
   const [query, setQuery] = useState('')
   const [expanded, setExpanded] = useState<PluginInventoryEntry['entryId'] | null>(null)
+  const [pending, setPending] = useState<ReadonlySet<string>>(() => new Set())
+  const [toggleError, setToggleError] = useState<string | null>(null)
   const [state, setState] = useState<ViewState>({ status: 'loading' })
 
   useEffect(() => {
@@ -96,6 +102,27 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
     setRequest(value => value + 1)
   }
 
+  /** Toggle one entry, then refresh the snapshot once the transition settles. */
+  const toggle = (entry: PluginInventoryEntry): void => {
+    const target = !entry.enabled
+    const key = String(entry.entryId)
+    setToggleError(null)
+    setPending(current => new Set(current).add(key))
+    void setEnabled(key, target).then(
+      () => { setRequest(value => value + 1) },
+      (error: unknown) => {
+        const detail = error instanceof Error && error.message.trim() !== '' ? error.message : undefined
+        setToggleError(detail === undefined ? t('toggleFailed') : t('toggleFailedDetail', { detail }))
+      },
+    ).finally(() => {
+      setPending((current) => {
+        const next = new Set(current)
+        next.delete(key)
+        return next
+      })
+    })
+  }
+
   return (
     <div className={css.section} aria-busy={state.status === 'loading'}>
       {state.status === 'loading' ? <p className={css.status}>{t('loading')}</p> : null}
@@ -122,6 +149,7 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
             <h3>{t('catalog')}</h3>
             <span data-plugin-count={filteredEntries.length}>{filteredEntries.length}</span>
           </div>
+          {toggleError !== null ? <p className={css.toggleError} role="alert">{toggleError}</p> : null}
           {state.snapshot.entries.length === 0 ? <p className={css.status}>{t('empty')}</p> : null}
           {state.snapshot.entries.length > 0 && filteredEntries.length === 0
             ? <p className={css.status}>{t('emptySearch')}</p>
@@ -130,9 +158,12 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
             <ul className={css.cards}>
               {filteredEntries.map((entry) => {
                 const status = phaseLabel(entry.fiberPhase, t)
-                const title = moduleShortName(entry.moduleName)
+                const localized = describe(entry.moduleName)
+                const title = localized?.name ?? moduleShortName(entry.moduleName)
+                const summary = localized?.summary
                 const configuration = t(entry.enabled ? 'enabledTag' : 'disabledTag')
                 const open = expanded === entry.entryId
+                const busy = pending.has(String(entry.entryId))
                 const detailId = `${catalogId}-details-${encodeURIComponent(entry.entryId)}`
                 return (
                   <li
@@ -141,33 +172,49 @@ export function PluginInventorySettingsTab({ list, t }: PluginInventorySettingsT
                     data-plugin-entry={entry.entryId}
                     data-open={open ? 'true' : undefined}
                   >
-                    <button
-                      className={css.cardContent}
-                      type="button"
-                      aria-expanded={open}
-                      aria-controls={detailId}
-                      aria-label={entry.enabled ? `${title}, ${status}, ${configuration}` : `${title}, ${configuration}`}
-                      onClick={() => {
-                        setExpanded(current => current === entry.entryId ? null : entry.entryId)
-                      }}
-                    >
-                      <strong className={css.cardTitle} title={entry.moduleName}>{title}</strong>
-                      <span className={css.cardTrailing}>
-                        {entry.enabled ? (
-                          <span
-                            className={css.statusDot}
-                            data-phase={entry.fiberPhase ?? 'unobserved'}
-                            role="img"
-                            aria-label={status}
-                            title={status}
-                          />
-                        ) : null}
-                        <span className={css.configTag} data-enabled={entry.enabled ? 'true' : 'false'}>
-                          {configuration}
+                    <div className={css.cardHeader}>
+                      <button
+                        className={css.cardContent}
+                        type="button"
+                        aria-expanded={open}
+                        aria-controls={detailId}
+                        aria-label={entry.enabled ? `${title}, ${status}, ${configuration}` : `${title}, ${configuration}`}
+                        onClick={() => {
+                          setExpanded(current => current === entry.entryId ? null : entry.entryId)
+                        }}
+                      >
+                        <span className={css.cardBody}>
+                          <strong className={css.cardTitle} title={entry.moduleName}>{title}</strong>
+                          {summary !== undefined ? <span className={css.cardSummary}>{summary}</span> : null}
                         </span>
-                        <IconChevronDownOutline14 className={css.chevron} size={12} aria-hidden="true" />
-                      </span>
-                    </button>
+                        <span className={css.cardTrailing}>
+                          {entry.enabled ? (
+                            <span
+                              className={css.statusDot}
+                              data-phase={entry.fiberPhase ?? 'unobserved'}
+                              role="img"
+                              aria-label={status}
+                              title={status}
+                            />
+                          ) : null}
+                          <IconChevronDownOutline14 className={css.chevron} size={12} aria-hidden="true" />
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        role="switch"
+                        className={css.toggle}
+                        data-on={entry.enabled ? 'true' : undefined}
+                        aria-checked={entry.enabled}
+                        aria-label={t('toggleAria', { name: title })}
+                        disabled={busy}
+                        onClick={() => { toggle(entry) }}
+                      >
+                        <span className={css.toggleTrack} aria-hidden="true">
+                          <span className={css.toggleThumb} />
+                        </span>
+                      </button>
+                    </div>
                     {open ? (
                       <div className={css.cardDetails} id={detailId}>
                         <code className={css.entryValue} data-loader-entry>{entry.entryId}</code>

@@ -39,6 +39,8 @@ interface BenchOptions {
   commands?: (payload: { sessionId: SessionId }) => Promise<{ commands: CommandDescriptor[] }>
   execute?: (payload: { sessionId: SessionId; line: string }) => Promise<ExecuteValue>
   addressed?: SessionId
+  /** Locale-aware description override injected into the runtime. */
+  describe?: (name: string) => string | undefined
 }
 
 /**
@@ -136,7 +138,9 @@ async function bench(opts: BenchOptions = {}) {
       }),
     },
   })
-  const fiber = ctx.plugin(CommandUiRuntime)
+  const fiber = opts.describe === undefined
+    ? ctx.plugin(CommandUiRuntime)
+    : ctx.plugin(CommandUiRuntime, { describe: opts.describe })
   await fiber.await()
   const command = ctx.get('commandUi') as CommandUiRuntime
   const source = registered.get('/ command')
@@ -216,6 +220,17 @@ describe('candidates', () => {
     const list = await source.candidates(proj('s1'), req('g'))
     expect(listCalls).toEqual([{ sessionId: sid('s1') }])
     expect(list).toEqual([{ name: 'goal', description: 'leadingInput kind', hint: 'goal text' }])
+  })
+
+  it('overrides host descriptions through describe and falls back to the host text', async () => {
+    const { source } = await bench({
+      describe: name => name === 'goal' ? '设置或查看长期任务的目标' : undefined,
+    })
+    const list = await source.candidates(proj('s1'), req(''))
+    expect(list).toEqual([
+      { name: 'plan', description: 'bare kind' },
+      { name: 'goal', description: '设置或查看长期任务的目标', hint: 'goal text' },
+    ])
   })
 
   it('matches case-insensitive subsequences and ranks prefixes, boundaries, adjacency, gaps, then source order', async () => {

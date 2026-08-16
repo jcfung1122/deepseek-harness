@@ -67,6 +67,28 @@ export class PluginInventoryGateway extends TypertRemoteService {
     }
     return { entries }
   }
+
+  /**
+   * Hot-swap one non-group entry at runtime: dispose its Fiber to disable, or
+   * (re)start it to enable. This is the Loader's own hot-reload path — it
+   * resolves the entry by its nested id, applies the `disabled` flag through
+   * `Entry.update`, and lets Cordis inject-waiting keep dependent plugins
+   * pending until the entry returns. The mutation is session-scoped: the Web
+   * profile's root `cordis.yml` is rewritten empty on every boot, so this never
+   * bakes into a user's durable patch layer.
+   * @param entryId - nested Loader entry id as returned by {@link list}.
+   * @param enabled - whether the entry should be running after the call.
+   * @returns an acknowledgement once the enable/disable transition settles.
+   */
+  @Remote('setEnabled')
+  async setEnabled(entryId: string, enabled: boolean): Promise<{ ok: true }> {
+    const entry = this.ctx.loader.resolve(entryId)
+    if (entry.options.group) {
+      throw new Error(`plugin entry "${entryId}" is a group and cannot be toggled`)
+    }
+    await entry.update({ disabled: !enabled })
+    return { ok: true }
+  }
 }
 
 export default PluginInventoryGateway

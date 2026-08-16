@@ -18,9 +18,16 @@
     persona: >-
       You are a coding agent powered by the {{model}} model. Your working directory is {{cwd}}.
 
-# TODO: Re-enable shared HMR for Web after its reload lifecycle is tested.
+# Config-only hot reload stays enabled in the composition with no module roots
+# (root: []), matching what apps/cli's runtime watch-only fallback used to
+# mount. The shared module-reload HMR (the base row's root: ['.']) stays off
+# because its reload lifecycle is untested for the browser surface. Keeping this
+# row enabled means ctx.get('hmr') is defined at boot, so apps/cli skips its
+# runtime fallback and the plugin inventory shows one enabled row instead of a
+# disabled composition row plus a runtime duplicate.
 - id: hmr
-  disabled: true
+  config:
+    root: []
 
 # Full-text session search is opt-in (the base row's `openAt: never`). This
 # restatement keeps the Web values on one ephemeral in-memory index; a

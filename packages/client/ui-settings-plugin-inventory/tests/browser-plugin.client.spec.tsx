@@ -31,8 +31,10 @@ async function bench() {
   new RemoteService(ctx)
   const list = vi.fn<() => Promise<ListResult>>()
     .mockResolvedValue({ ok: true, value: EMPTY })
-  ctx.provide('remote.pluginInventory', { list })
-  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list }
+  const setEnabled = vi.fn<() => Promise<{ ok: true }>>()
+    .mockResolvedValue({ ok: true })
+  ctx.provide('remote.pluginInventory', { list, setEnabled })
+  return { ctx, slots: ctx.get('slots') as SlotRegistry, locale, list, setEnabled }
 }
 
 function declare(slots: SlotRegistry): () => void {
@@ -64,6 +66,18 @@ describe('ui-settings-plugin-inventory browser plugin', () => {
     expect(b.list).toHaveBeenCalledOnce()
     b.list.mockResolvedValueOnce({ ok: false, error: { code: 'REMOTE_ERROR', message: 'unavailable' } })
     await expect(injected.list()).rejects.toThrow('pluginInventory.list failed: REMOTE_ERROR: unavailable')
+
+    // The catalog resolves a mapped module to its zh name and summary.
+    expect(injected.describe('@deepseek-ai/dsh-session')).toEqual({
+      name: '会话',
+      summary: '会话数据、持久化与投影。',
+    })
+    expect(injected.describe('@fixture/unknown')).toBeUndefined()
+
+    await expect(injected.setEnabled('entry-x', false)).resolves.toBeUndefined()
+    expect(b.setEnabled).toHaveBeenCalledWith('entry-x', false)
+    b.setEnabled.mockResolvedValueOnce({ ok: false, error: { code: 'REMOTE_ERROR', message: 'nope' } } as never)
+    await expect(injected.setEnabled('entry-x', true)).rejects.toThrow('nope')
     await b.ctx.fiber.dispose()
   })
 

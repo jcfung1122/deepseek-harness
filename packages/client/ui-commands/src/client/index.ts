@@ -15,6 +15,7 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { CommandUiRuntime } from './service.ts'
 import type { PopupSelectInjected } from './PopupSelectView.tsx'
 import { PopupSelectView } from './PopupSelectView.tsx'
+import { COMMAND_CATALOG } from './catalog.ts'
 import { en, zh, type CommandKey } from './locales.ts'
 
 export { CommandUiRuntime } from './service.ts'
@@ -54,7 +55,12 @@ export const inject = ['inputTriggers', 'sessions', 'remote', 'remote.commands',
  */
 export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'ui-commands: dictionaries')
-  ctx.plugin(CommandUiRuntime)
+  // Chinese overlay for command descriptions: resolve the active locale at
+  // candidate time, so a language switch reaches the next "/" menu pass. The
+  // English locale falls through to the host's own description.
+  const describe = (name: string): string | undefined =>
+    ctx.locale.getLocale().active === 'zh' ? COMMAND_CATALOG[name] : undefined
+  ctx.plugin(CommandUiRuntime, { describe })
   ctx.inject(['slots', 'commandUi', 'sessions'], (scope: ClientContext) => {
     const command = scope.commandUi
     const sessions = scope.sessions

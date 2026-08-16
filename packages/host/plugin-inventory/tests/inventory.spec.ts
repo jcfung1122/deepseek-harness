@@ -31,7 +31,7 @@ async function harness(): Promise<{
 }
 
 describe('PluginInventoryGateway', () => {
-  it('publishes one direct list method under the pluginInventory namespace', async () => {
+  it('publishes the list and setEnabled direct methods under the pluginInventory namespace', async () => {
     const { inventory } = await harness()
     expect(inventory.typertRemote).toMatchObject({
       serviceKey: 'pluginInventory',
@@ -39,6 +39,7 @@ describe('PluginInventoryGateway', () => {
     })
     expect(remoteMethods(inventory)).toEqual([
       { method: 'list', invocation: { kind: 'direct' } },
+      { method: 'setEnabled', invocation: { kind: 'direct' } },
     ])
   })
 
@@ -85,5 +86,35 @@ describe('PluginInventoryGateway', () => {
 
     await ctx.loader.remove(pendingId)
     expect(inventory.list().entries.some(entry => entry.entryId === pendingId)).toBe(false)
+  })
+
+  it('hot-swaps one entry via setEnabled without touching sibling entries', async () => {
+    const { ctx, inventory } = await harness()
+    const activeId = await ctx.loader.create({ name: 'cordis:active' })
+    const siblingId = await ctx.loader.create({ name: 'cordis:active' })
+
+    await expect(inventory.setEnabled(activeId, false)).resolves.toEqual({ ok: true })
+    expect(inventory.list().entries.find(entry => entry.entryId === activeId)).toEqual({
+      entryId: activeId,
+      moduleName: 'cordis:active',
+      enabled: false,
+      fiberPhase: null,
+    })
+    expect(inventory.list().entries.find(entry => entry.entryId === siblingId)?.enabled).toBe(true)
+
+    await expect(inventory.setEnabled(activeId, true)).resolves.toEqual({ ok: true })
+    expect(inventory.list().entries.find(entry => entry.entryId === activeId)).toEqual({
+      entryId: activeId,
+      moduleName: 'cordis:active',
+      enabled: true,
+      fiberPhase: 'active',
+    })
+  })
+
+  it('rejects setEnabled for an unknown entry or a group entry', async () => {
+    const { ctx, inventory } = await harness()
+    await expect(inventory.setEnabled('missing', true)).rejects.toThrow(/cannot resolve entry/)
+    const groupId = await ctx.loader.create({ name: 'cordis:active', group: true })
+    await expect(inventory.setEnabled(groupId, true)).rejects.toThrow(/cannot be toggled/)
   })
 })

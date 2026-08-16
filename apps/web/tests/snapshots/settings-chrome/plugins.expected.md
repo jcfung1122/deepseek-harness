@@ -1,6 +1,7 @@
 - listitem:
-  - button "ui-settings, 已挂载, 已启用":
-    - strong: ui-settings
+  - button "设置外壳, 已挂载, 已启用":
+    - strong: 设置外壳
+    - text: 设置对话框框架。
     - img "已挂载"
-    - text: 已启用
     - img
+  - switch "切换「设置外壳」" [checked]
