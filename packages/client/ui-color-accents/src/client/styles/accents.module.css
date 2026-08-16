@@ -1,0 +1,83 @@
+/* Semantic git accent colors. Token-only: every color resolves through the
+   --dsw-* alias/static palette, so dark and light themes adapt automatically.
+   Every selector is attribute-based, so the CSS Modules pass ships them
+   through unmodified (no class-name hashing applies). */
+
+/* Branch chip (git-graph, the conversation-header context hole). */
+[data-gitgraph-chip] {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 45%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+}
+
+[data-gitgraph-chip] svg {
+  color: var(--dsw-alias-state-business-primary);
+}
+
+/* Better-sidebar branch select. */
+[class*="gitBranchSelect"] {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 45%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+}
+
+/* Commit hash. */
+[class*="gitLogHash"] {
+  color: var(--dsw-alias-state-business-primary);
+}
+
+/* Status badges (M/A/D/R/C/U/T/?) — VSCode-style semantic colors. */
+[class*="gitBadge"][data-dsh-git-kind="added"] {
+  background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 16%, transparent);
+  color: var(--dsw-alias-state-success-primary);
+}
+
+[class*="gitBadge"][data-dsh-git-kind="deleted"],
+[class*="gitBadge"][data-dsh-git-kind="unmerged"] {
+  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 16%, transparent);
+  color: var(--dsw-alias-state-error-primary);
+}
+
+[class*="gitBadge"][data-dsh-git-kind="modified"] {
+  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 16%, transparent);
+  color: var(--dsw-alias-state-warn-primary);
+}
+
+[class*="gitBadge"][data-dsh-git-kind="renamed"],
+[class*="gitBadge"][data-dsh-git-kind="copied"],
+[class*="gitBadge"][data-dsh-git-kind="typechange"] {
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 16%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+}
+
+[class*="gitBadge"][data-dsh-git-kind="untracked"] {
+  background: color-mix(in srgb, var(--dsw-alias-label-tertiary) 16%, transparent);
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* Ref badges: better-sidebar history and the git-graph graph. */
+[class*="gitLogRef"][data-dsh-git-kind="branch"],
+[data-gitgraph-ref][data-dsh-git-kind="branch"] {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-success-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 14%, transparent);
+  color: var(--dsw-alias-state-success-primary);
+}
+
+[class*="gitLogRef"][data-dsh-git-kind="remote"],
+[data-gitgraph-ref][data-dsh-git-kind="remote"] {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 14%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+}
+
+[class*="gitLogRef"][data-dsh-git-kind="tag"],
+[data-gitgraph-ref][data-dsh-git-kind="tag"] {
+  border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 40%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 14%, transparent);
+  color: var(--dsw-alias-state-warn-primary);
+}
+
+[class*="gitLogRef"][data-dsh-git-kind="head"],
+[data-gitgraph-ref][data-dsh-git-kind="head"] {
+  border-color: var(--dsw-alias-state-business-primary);
+  background: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-static-neutral-bluish-00);
+}
