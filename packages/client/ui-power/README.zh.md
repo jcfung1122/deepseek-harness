@@ -2,9 +2,9 @@
 
 [English](README.md) | 中文
 
-侧边栏底部「设置」旁边的电源按钮：悬浮弹出二级菜单（关闭 DSH / 重启 Web UI），每项都先内联确认，再调用宿主 `power` Remote（`dsh-host-power`）。收到确认后本页通过 `window.close()` 自行关闭，因此只关闭 DSH 这一页——绝不触碰其他 Chrome 窗口。
+侧边栏底部「设置」上方的电源按钮：悬浮弹出二级菜单（关闭 DSH / 重启 Web UI），每项都先内联确认，再调用宿主 `power` Remote（`dsh-host-power`）。收到确认后本页通过 `window.close()` 自行关闭，因此只关闭 DSH 这一页——绝不触碰其他 Chrome 窗口。
 
-浏览器侧把按钮注册进 `sidebar.power`（由 `ui-sidebar` 声明），并经 `api-remotes` 装配读取生成的 `remote.power` Remote。宿主侧刻意留空——关闭/重启的进程动作都在宿主网关里。
+浏览器侧把按钮注册进 `sidebar.footer.action`（由 `ui-sidebar` 声明），并经 `api-remotes` 装配读取生成的 `remote.power` Remote。宿主侧刻意留空——关闭/重启的进程动作都在宿主网关里。
 
 ## Model Experience
 

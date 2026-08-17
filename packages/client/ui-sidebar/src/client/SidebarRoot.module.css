@@ -249,18 +249,14 @@
   flex-direction: column;
 }
 
-.settingsArea {
-  flex: none;
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-}
-
+.settingsArea,
 .footerActions {
   flex: none;
   min-width: 0;
   width: 100%;
+}
+
+.footerActions {
   display: flex;
 }
 
@@ -268,14 +264,7 @@
   align-items: center;
 }
 
-.collapsed .settingsArea {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: auto;
-}
-
+.collapsed .settingsArea,
 .collapsed .footerActions {
   display: flex;
   justify-content: center;

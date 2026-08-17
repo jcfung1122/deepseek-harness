@@ -3,7 +3,7 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
-// Type-only: pulls ui-sidebar's SlotMap merge (the 'sidebar.power' entry).
+// Type-only: pulls ui-sidebar's SlotMap merge (the 'sidebar.footer.action' entry).
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import { PowerButton, type PowerButtonInjected } from './PowerButton.tsx'
 import { en, zh, type PowerKey } from './locales.ts'
@@ -41,8 +41,9 @@ export function apply(ctx: ClientContext): void {
   }
   const injected = (): PowerButtonInjected => ({ shutdown, restart })
 
-  ctx.slots.inject('sidebar.power', () => ctx.slots.register({
-    name: 'sidebar.power',
+  ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
+    name: 'sidebar.footer.action',
+    id: 'power',
     locale: NS,
     inject: injected,
   }, PowerButton))

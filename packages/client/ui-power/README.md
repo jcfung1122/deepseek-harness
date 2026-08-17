@@ -2,13 +2,13 @@
 
 English | [中文](README.zh.md)
 
-Web power button beside Settings in the sidebar foot: hovering it opens a two-item menu (shut down / restart), each gated by an inline confirm before invoking the Host `power` Remote (`dsh-host-power`). On acknowledgement the page closes itself via `window.close()`, so only this DSH page closes — other Chrome windows are never touched.
+Web power button above Settings in the sidebar foot: hovering it opens a two-item menu (shut down / restart), each gated by an inline confirm before invoking the Host `power` Remote (`dsh-host-power`). On acknowledgement the page closes itself via `window.close()`, so only this DSH page closes — other Chrome windows are never touched.
 
-The browser half registers the button into `sidebar.power` (declared by `ui-sidebar`) and reads the generated `remote.power` Remote through the `api-remotes` assembly. The host half is empty on purpose — the shutdown/restart process action lives in the Host gateway.
+The browser half registers the button into `sidebar.footer.action` (declared by `ui-sidebar`) and reads the generated `remote.power` Remote through the `api-remotes` assembly. The host half is empty on purpose — the shutdown/restart process action lives in the Host gateway.
 
 ## Model Experience
 
-None. The button only issues process-lifecycle calls; it contributes no tool, prompt, or model-visible data.
+None, as the button only issues host process-lifecycle calls and registers no tool, prompt, or model-visible data.
 
 #### KV Cache effect
 

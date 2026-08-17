@@ -870,19 +870,3 @@ export const IconArchiveOutline20 = ({ size = 20, className }: IconProps) => (
     <path d="M12.7962 12.5661V11.0832H7.20548V12.5661L12.7962 12.5661Z" fill="currentColor" />
   </svg>
 )
-
-/** ic_ds_power_outline_14 — power symbol (open ring + top stem). */
-export const IconPowerOutline14 = ({ size = 14, className }: IconProps) => (
-  <svg width={size} height={size} className={className} viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10.71 3.88a5.25 5.25 0 1 1-7.42 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    <path d="M7 1.17V7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-  </svg>
-)
-
-/** ic_ds_power_outline_16 — power symbol (open ring + top stem). */
-export const IconPowerOutline16 = ({ size = 16, className }: IconProps) => (
-  <svg width={size} height={size} className={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12.24 4.43a6 6 0 1 1-8.49 0" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-    <path d="M8 1.33V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-  </svg>
-)

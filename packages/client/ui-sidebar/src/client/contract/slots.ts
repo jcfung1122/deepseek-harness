@@ -29,12 +29,6 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      */
     'sidebar.settings': { kind: 'single'; scope: 'root'; owner: SidebarSettingsOwnerProps }
     /**
-     * Power seat beside Settings at the sidebar foot. Declared by this
-     * package's 'sidebar' entry; ui-power registers the power button + hover
-     * menu. The sidebar passes only its column state.
-     */
-    'sidebar.power': { kind: 'single'; scope: 'root'; owner: SidebarSettingsOwnerProps }
-    /**
      * Optional actions beside Settings at the sidebar foot. Declared by this
      * package's 'sidebar' entry; each action receives only the column state.
      */
@@ -91,5 +85,5 @@ export type SidebarRootInjected = {
  */
 export type SidebarRootComponentProps =
   PropsRuntime<'sidebar'>
-  & PropsRenderSlots<'sidebar.workspaces' | 'sidebar.settings' | 'sidebar.power' | 'sidebar.footer.action'>
+  & PropsRenderSlots<'sidebar.workspaces' | 'sidebar.settings' | 'sidebar.footer.action'>
   & SidebarRootInjected & PropsLocale<'sidebar'>

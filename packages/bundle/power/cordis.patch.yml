@@ -1,0 +1,15 @@
+# The dsh-power bundle patch: the power button over the web profile.
+# Applied as an extra profile layer after dsh-base and dsh-web-app; the two
+# rows add the Host power gateway and the browser power button.
+
+- insert:
+    # Process power controls: a Remote that cleanly shuts down or restarts the
+    # Web GUI. It reads the launcher-provided appExit to leave gracefully and
+    # rebuilds the relaunch command from the running process (cross-platform).
+    - id: power
+      name: '@deepseek-ai/dsh-host-power'
+
+    # The browser power button above Settings: a hover menu to shut down or
+    # restart. It consumes the power Remote mounted by api-remotes.
+    - id: ui-power
+      name: '@deepseek-ai/dsh-client-ui-power'

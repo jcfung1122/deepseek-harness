@@ -12,15 +12,6 @@
       "path": "../../../vendor/cordis"
     },
     {
-      "path": "../../boot/cmdline"
-    },
-    {
-      "path": "../webserver"
-    },
-    {
-      "path": "../../typert/protocol"
-    },
-    {
       "path": "../../runtime-diagnostics/invariants"
     }
   ]
