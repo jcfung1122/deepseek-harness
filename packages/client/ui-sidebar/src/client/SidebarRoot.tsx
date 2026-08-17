@@ -184,6 +184,7 @@ export function SidebarRoot({
           {renderSlot('sidebar.footer.action', { wide })}
         </div>
         <div className={css.settingsArea}>
+          {renderSlot('sidebar.power', { wide })}
           {renderSlot('sidebar.settings', { wide })}
         </div>
       </div>

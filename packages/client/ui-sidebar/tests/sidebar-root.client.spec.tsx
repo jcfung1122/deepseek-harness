@@ -41,6 +41,9 @@ function mountShell({ collapsed = false, width = 300 }: { collapsed?: boolean; w
           settingsOwner = owner
           return <div data-testid="settings-seat" data-wide={owner.wide} />
         }
+        if (key === 'sidebar.power') {
+          return <div data-testid="power-seat" data-wide={owner.wide} />
+        }
         if (key === 'sidebar.footer.action') {
           footerActionOwner = owner
           return <div data-testid="footer-action-seat" data-wide={owner.wide} />

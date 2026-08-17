@@ -101,6 +101,11 @@
     - id: plugin-inventory
       name: '@deepseek-ai/dsh-host-plugin-inventory'
 
+    # Process power controls: a Remote that cleanly shuts down or restarts the
+    # Web GUI. It reads the launcher-provided appExit to leave gracefully.
+    - id: power
+      name: '@deepseek-ai/dsh-host-power'
+
     # The API gateway: the transport-agnostic dispatch face every client shape
     # shares. The base layer's agent-default-model service owns the default model.
     - id: api-gateway
@@ -183,6 +188,9 @@
 
     - id: ui-color-accents
       name: '@deepseek-ai/dsh-client-ui-color-accents'
+
+    - id: ui-power
+      name: '@deepseek-ai/dsh-client-ui-power'
 
     - id: locale
       name: '@deepseek-ai/dsh-client-locale'

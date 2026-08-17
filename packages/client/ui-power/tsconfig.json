@@ -21,6 +21,9 @@
       "path": "../runtime"
     },
     {
+      "path": "../ui-primitives"
+    },
+    {
       "path": "../ui-slots"
     },
     {

@@ -6,18 +6,9 @@
  * windows.
  */
 import { useEffect, useRef, useState } from 'react'
+import { IconPowerOutline14, IconPowerOutline16 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import css from './power.module.css'
-
-/** Inline power glyph (open ring + top stem), so the plugin carries no icon-library dependency. */
-function PowerIcon({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg width={size} height={size} className={className} viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10.71 3.88a5.25 5.25 0 1 1-7.42 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M7 1.17V7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 /** Injected business face: the two Host power actions, surfaced from the Remote. */
 export interface PowerButtonInjected {
@@ -27,8 +18,8 @@ export interface PowerButtonInjected {
   restart: () => Promise<void>
 }
 
-/** Full component props: the sidebar.footer.action seat + locale + injected face. */
-export type PowerButtonProps = PropsRuntime<'sidebar.footer.action'> & PropsLocale<'power'> & PowerButtonInjected
+/** Full component props: the sidebar.power seat + locale + injected face. */
+export type PowerButtonProps = PropsRuntime<'sidebar.power'> & PropsLocale<'power'> & PowerButtonInjected
 
 type PowerAction = 'shutdown' | 'restart'
 
@@ -114,7 +105,7 @@ export function PowerButton({ wide, t, shutdown, restart }: PowerButtonProps) {
           }
         }}
       >
-        <PowerIcon size={wide ? 16 : 18} />
+        {wide ? <IconPowerOutline16 size={16} /> : <IconPowerOutline14 size={18} />}
         {wide && <span className={css.label}>{t('trigger')}</span>}
       </button>
       {open && (

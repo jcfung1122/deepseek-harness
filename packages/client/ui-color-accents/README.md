@@ -10,7 +10,7 @@ The brand accent layer re-points `--dsw-alias-brand-primary` at the business blu
 
 ## Model Experience
 
-None, as the plugin only injects a stylesheet, a token layer, and read-only `data-*` attributes, and registers no tool, prompt, or model-visible data.
+None. The plugin injects a stylesheet and a token layer and writes read-only `data-*` attributes; it contributes no tool, prompt, or model-visible data.
 
 #### KV Cache effect
 

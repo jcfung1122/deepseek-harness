@@ -15,9 +15,6 @@
       "path": "../../boot/cmdline"
     },
     {
-      "path": "../webserver"
-    },
-    {
       "path": "../../typert/protocol"
     },
     {
