@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PowerButton, type PowerButtonInjected, type PowerButtonProps } from '../src/client/PowerButton.tsx'
 import { zh } from '../src/client/locales.ts'
@@ -37,16 +37,41 @@ describe('PowerButton', () => {
     expect(screen.getByRole('menuitem', { name: zh.restart })).toBeDefined()
   })
 
-  it('renders icon-only in the rail and opens on hover, closes on leave', () => {
+  it('closes immediately on a second click while open', () => {
+    renderButton()
+    fireEvent.click(powerButton())
+    expect(screen.getByRole('menuitem', { name: zh.shutdown })).toBeDefined()
+    fireEvent.click(powerButton())
+    expect(screen.queryByRole('menuitem', { name: zh.shutdown })).toBeNull()
+  })
+
+  it('renders icon-only in the rail and keeps the menu open across the leave gap', () => {
+    vi.useFakeTimers()
     const injected = { shutdown: vi.fn(async () => {}), restart: vi.fn(async () => {}) }
-    render(<PowerButton wide={false} t={t} {...globalProps} {...injected} />)
+    const view = render(<PowerButton wide={false} t={t} {...globalProps} {...injected} />)
     const button = powerButton()
     // Rail seat: icon only, no label span.
     expect(button.querySelector('span')).toBeNull()
+
     fireEvent.mouseEnter(button.parentElement!)
     expect(screen.getByRole('menuitem', { name: zh.shutdown })).toBeDefined()
+
+    // Leaving schedules a delayed close; the menu is not closed instantly.
     fireEvent.mouseLeave(button.parentElement!)
+    expect(screen.getByRole('menuitem', { name: zh.shutdown })).toBeDefined()
+
+    // Entering the menu cancels the pending close.
+    fireEvent.mouseEnter(screen.getByRole('menu'))
+    act(() => { vi.advanceTimersByTime(200) })
+    expect(screen.getByRole('menuitem', { name: zh.shutdown })).toBeDefined()
+
+    // A fresh leave closes after the delay elapses.
+    fireEvent.mouseLeave(button.parentElement!)
+    act(() => { vi.advanceTimersByTime(151) })
     expect(screen.queryByRole('menuitem', { name: zh.shutdown })).toBeNull()
+
+    view.unmount()
+    vi.useRealTimers()
   })
 
   it('confirms before shutting down, then closes this window', async () => {

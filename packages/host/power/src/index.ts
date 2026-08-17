@@ -9,6 +9,9 @@
  */
 
 import { spawn } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
@@ -21,11 +24,12 @@ const SOURCE_ROOT = fileURLToPath(new URL('../../../..', import.meta.url))
 /** One-click launcher beside this checkout: hidden node start + Chrome reopen. */
 const RESTART_LAUNCHER = `${SOURCE_ROOT}\\start-dsh-web.vbs`
 
-/** Default listen port the re-launcher waits to free. */
-const DEFAULT_PORT = 3080
-
-/** Upper bound the detached helper polls the freed port before relaunching. */
-const PORT_FREE_TIMEOUT_MS = 15_000
+/**
+ * How long the restart helper waits before re-running the launcher. The
+ * graceful shutdown is bounded (see the launcher's shutdown controller), so a
+ * fixed wait comfortably outlives the port release without polling.
+ */
+const RESTART_WAIT_MS = 7000
 
 /** How long the exit is deferred so the Remote ack flushes to the browser first. */
 const EXIT_DEFER_MS = 100
@@ -48,24 +52,22 @@ function deferExit(ctx: Context): void {
 }
 
 /**
- * Detach a PowerShell helper that polls the listen port free, then runs the
- * one-click launcher (which starts the new node hidden and reopens Chrome).
- * The child is detached and unref'd, so it survives this process's exit.
- * @param ctx - owning context (reads the bound port).
+ * Detach a restart helper that waits for the graceful shutdown to release the
+ * port, then runs the one-click launcher (which starts the new node hidden and
+ * reopens Chrome). The helper is a VBS run by `wscript`, so it is windowless;
+ * a bare `detached` spawn stays in this process's Windows job and is killed
+ * when the graceful exit completes, so the helper is launched through
+ * `cmd /c start` to break it away from that job.
  */
-function spawnRestartHelper(ctx: Context): void {
-  const port = (ctx.get('webServer') as { port?: number } | undefined)?.port ?? DEFAULT_PORT
-  const waitSeconds = Math.ceil(PORT_FREE_TIMEOUT_MS / 1000)
-  const script = [
-    `$deadline = (Get-Date).AddSeconds(${waitSeconds})`,
-    'while ((Get-Date) -lt $deadline) {',
-    `  $listener = Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue`,
-    '  if (-not $listener) { break }',
-    '  Start-Sleep -Milliseconds 500',
-    '}',
-    `Start-Process -FilePath 'wscript.exe' -ArgumentList '${RESTART_LAUNCHER}'`,
-  ].join('; ')
-  const child = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
+function spawnRestartHelper(): void {
+  const helperPath = join(tmpdir(), `dsh-restart-${process.pid}.vbs`)
+  writeFileSync(helperPath, [
+    'Set shell = CreateObject("WScript.Shell")',
+    `WScript.Sleep ${RESTART_WAIT_MS}`,
+    `shell.Run """C:\\Windows\\System32\\wscript.exe"" ""${RESTART_LAUNCHER}"""`,
+    '',
+  ].join('\r\n'))
+  const child = spawn('cmd.exe', ['/c', 'start', '', 'wscript.exe', helperPath], {
     detached: true,
     stdio: 'ignore',
     windowsHide: true,
@@ -97,7 +99,7 @@ export class PowerGateway extends TypertRemoteService {
    */
   @Remote('restart')
   restart(): { ok: true } {
-    spawnRestartHelper(this.ctx)
+    spawnRestartHelper()
     deferExit(this.ctx)
     return { ok: true }
   }

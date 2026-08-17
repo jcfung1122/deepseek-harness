@@ -1,19 +1,27 @@
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { spawn } from 'node:child_process'
+import { writeFileSync } from 'node:fs'
 import { PowerGateway } from '../src/index.ts'
 
 vi.mock('node:child_process', () => ({
   spawn: vi.fn(() => ({ unref: vi.fn() })),
 }))
+vi.mock('node:fs', () => ({ writeFileSync: vi.fn() }))
+vi.mock('node:os', () => ({ tmpdir: vi.fn(() => 'C:\\Temp') }))
 
 const mockedSpawn = vi.mocked(spawn)
+const mockedWriteFile = vi.mocked(writeFileSync)
+
+/** The last helper .vbs body written by the gateway. */
+function helperScript(): string {
+  return mockedWriteFile.mock.calls.at(-1)![1] as string
+}
 
 /** Build a context with the launcher services the gateway reads. */
 function bench(exit?: (code: number) => void): { ctx: Context; gateway: PowerGateway } {
   const ctx = new Context()
   if (exit !== undefined) ctx.provide('appExit', exit)
-  ctx.provide('webServer', { port: 3080 } as never)
   return { ctx, gateway: new PowerGateway(ctx) }
 }
 
@@ -42,39 +50,25 @@ describe('PowerGateway', () => {
     exit.mockRestore()
   })
 
-  it('restart detaches a relaunch helper then exits', () => {
+  it('restart writes and breaks away a windowless relaunch helper then exits', () => {
     const exit = vi.fn()
     const { gateway } = bench(exit)
     expect(gateway.restart()).toEqual({ ok: true })
 
     expect(mockedSpawn).toHaveBeenCalledTimes(1)
     const [cmd, args, opts] = mockedSpawn.mock.calls[0]!
-    expect(cmd).toBe('powershell.exe')
-    expect(args.join(' ')).toContain('wscript.exe')
-    expect(args.join(' ')).toContain('start-dsh-web.vbs')
+    expect(cmd).toBe('cmd.exe')
+    expect(args.slice(0, 3)).toEqual(['/c', 'start', ''])
+    expect(args[3]).toBe('wscript.exe')
     expect(opts?.detached).toBe(true)
     expect(opts?.stdio).toBe('ignore')
 
+    const script = helperScript()
+    expect(script).toContain('WScript.Sleep 7000')
+    expect(script).toContain('wscript.exe')
+    expect(script).toContain('start-dsh-web.vbs')
+
     vi.advanceTimersByTime(200)
     expect(exit).toHaveBeenCalledExactlyOnceWith(0)
-  })
-
-  it('uses the bound webserver port in the relaunch wait loop', () => {
-    const exit = vi.fn()
-    const ctx = new Context()
-    ctx.provide('appExit', exit)
-    ctx.provide('webServer', { port: 8123 } as never)
-    const gateway = new PowerGateway(ctx)
-    gateway.restart()
-    expect(mockedSpawn.mock.calls[0]![1].join(' ')).toContain('8123')
-  })
-
-  it('falls back to the default port when webserver is absent', () => {
-    const exit = vi.fn()
-    const ctx = new Context()
-    ctx.provide('appExit', exit)
-    const gateway = new PowerGateway(ctx)
-    gateway.restart()
-    expect(mockedSpawn.mock.calls[0]![1].join(' ')).toContain('3080')
   })
 })
