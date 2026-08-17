@@ -1,0 +1,135 @@
+/* Power button + hover menu in the sidebar foot. Tokens only — no literal colors. */
+
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--dsw-alias-brand-primary);
+}
+
+/* Collapsed rail: icon-only, centered, slightly larger glyph. */
+.rail {
+  width: 36px;
+  justify-content: center;
+  padding: 0;
+}
+
+.label {
+  font: var(--dsw-font-s-14);
+  white-space: nowrap;
+}
+
+/* Hover menu opens upward from the foot so it stays on screen. */
+.menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-overlay);
+  box-shadow: 0 8px 24px var(--dsw-alias-bg-mask-2);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-s-14);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px;
+}
+
+.confirmText {
+  margin: 0;
+  color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-s-14);
+  line-height: 1.5;
+}
+
+.error {
+  margin: 0;
+  color: var(--dsw-alias-state-error-primary);
+  font: var(--dsw-font-xxs-12);
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.confirmButton {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-button-tool-bar-fill);
+  color: var(--dsw-alias-label-primary);
+  font: var(--dsw-font-xxs-strong-12);
+  cursor: pointer;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.confirmButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.confirmDanger {
+  border-color: var(--dsw-alias-state-error-primary);
+  background: var(--dsw-alias-state-error-primary);
+  color: var(--dsw-alias-button-contrast-fill);
+}
+
+.confirmDanger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
