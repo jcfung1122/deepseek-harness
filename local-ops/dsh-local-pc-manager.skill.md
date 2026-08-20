@@ -13,7 +13,7 @@ whenToUse: 用户要求启动、重启、停止或关闭 DSH Web 服务，检查
 | 项 | 值 |
 |---|---|
 | 仓库 | D:\github\deepseek-harness |
-| DSH_HOME | C:\Users\Administrator\.dsh（web profile 已初始化：profiles\web） |
+| DSH_HOME | D:\github\deepseek-harness\.dsh（web profile 已初始化：profiles\web） |
 | Web 端口 / UI | 3080 / http://127.0.0.1:3080 |
 | Node | C:\Program Files\nodejs\node.exe（PATH 上有 node） |
 | pnpm | C:\Users\Administrator\AppData\Roaming\npm\pnpm.cmd |

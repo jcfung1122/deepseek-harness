@@ -5,6 +5,8 @@
 Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 shell.CurrentDirectory = "D:\github\deepseek-harness"
+' Pin DSH_HOME to the workspace so the server never falls back to ~/.dsh.
+shell.Environment("PROCESS")("DSH_HOME") = "D:\github\deepseek-harness\.dsh"
 pid = shell.Run("""C:\Program Files\nodejs\node.exe"" apps\cli\lib\bin.js --profile web --port 3080", 0, False)
 Set f = fso.CreateTextFile("D:\github\deepseek-harness\.dsh-web.pid", True)
 f.Write pid

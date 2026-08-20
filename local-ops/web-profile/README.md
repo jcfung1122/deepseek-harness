@@ -2,7 +2,7 @@
 
 本目录保存 DSH **web 配置**（`--profile web`）的插件清单快照，用于版本控制与回滚。
 
-实际生效位置在 `%DSH_HOME%\profiles\web\`（本机为 `C:\Users\Administrator\.dsh\profiles\web\`），不在本仓库内。这里是一份**存档副本**，记录了「当前装了哪些插件、什么版本」。
+实际生效位置在 `%DSH_HOME%\profiles\web\`（本机为 `D:\github\deepseek-harness\.dsh\profiles\web\`），在仓库内但已被 `.gitignore` 排除，不进版本控制。这里是一份**存档副本**，记录了「当前装了哪些插件、什么版本」。
 
 ## 包含文件
 
@@ -18,11 +18,11 @@
 在 GUI 里用 `dsh plugin --profile web add/remove ...` 改完插件后，回到本仓库根目录执行：
 
 ```powershell
-Copy-Item C:\Users\Administrator\.dsh\profiles\web\package.json        local-ops\web-profile\
-Copy-Item C:\Users\Administrator\.dsh\profiles\web\pnpm-lock.yaml      local-ops\web-profile\
-Copy-Item C:\Users\Administrator\.dsh\profiles\web\pnpm-workspace.yaml local-ops\web-profile\
-Copy-Item C:\Users\Administrator\.dsh\profiles\web\cordis.yml          local-ops\web-profile\
-Copy-Item C:\Users\Administrator\.dsh\profiles\web\cordis.patch.yml    local-ops\web-profile\
+Copy-Item D:\github\deepseek-harness\.dsh\profiles\web\package.json        local-ops\web-profile\
+Copy-Item D:\github\deepseek-harness\.dsh\profiles\web\pnpm-lock.yaml      local-ops\web-profile\
+Copy-Item D:\github\deepseek-harness\.dsh\profiles\web\pnpm-workspace.yaml local-ops\web-profile\
+Copy-Item D:\github\deepseek-harness\.dsh\profiles\web\cordis.yml          local-ops\web-profile\
+Copy-Item D:\github\deepseek-harness\.dsh\profiles\web\cordis.patch.yml    local-ops\web-profile\
 git add local-ops/web-profile
 git commit -m "ops(dsh): 更新插件配置快照"
 git push origin master
@@ -35,10 +35,10 @@ git push origin master
 git log --oneline -- local-ops/web-profile/package.json
 
 # 取出那个旧版 package.json，覆盖回生效目录
-git show <提交哈希>:local-ops/web-profile/package.json > C:\Users\Administrator\.dsh\profiles\web\package.json
+git show <提交哈希>:local-ops/web-profile/package.json > D:\github\deepseek-harness\.dsh\profiles\web\package.json
 
 # 在生效目录重装，恢复当时的插件集合
-cd C:\Users\Administrator\.dsh\profiles\web
+cd D:\github\deepseek-harness\.dsh\profiles\web
 pnpm install
 # 然后重启 DSH Web 服务
 ```
