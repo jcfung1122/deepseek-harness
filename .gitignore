@@ -37,6 +37,7 @@ python/_cache/
 python/pythoncore-3.14-64/
 apps/web/dist/
 .artifacts/
+.dsh-build/
 .playwright-mcp/
 .orig
 .worktrees/
