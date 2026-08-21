@@ -14,7 +14,7 @@ f.Close
 WScript.Sleep 8000
 ' Open the DSH Chrome app window only if it is not already running, so a
 ' re-launch never stacks a duplicate window.
-checkCmd = "powershell -NoProfile -Command ""$p = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'chrome*' -and $_.CommandLine -like '*hgiemfgfjhalibdoboikeiepnnjapnpc*' }; if ($p) { exit 0 } else { exit 1 }"""
+checkCmd = "pwsh -NoProfile -Command ""$p = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'chrome*' -and $_.CommandLine -like '*hgiemfgfjhalibdoboikeiepnnjapnpc*' }; if ($p) { exit 0 } else { exit 1 }"""
 rc = shell.Run(checkCmd, 0, True)
 If rc <> 0 Then
   shell.Run """C:\Users\Administrator\Desktop\DeepSeek Harness.lnk"""

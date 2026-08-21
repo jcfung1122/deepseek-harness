@@ -6,7 +6,7 @@ Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
 ' Stop the existing dsh server if any.
-killCmd = "powershell -NoProfile -Command ""Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*apps\cli\lib\bin.js*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"""
+killCmd = "pwsh -NoProfile -Command ""Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*apps\cli\lib\bin.js*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"""
 shell.Run killCmd, 0, True
 
 WScript.Sleep 3000
@@ -22,7 +22,7 @@ f.Close
 WScript.Sleep 8000
 ' Open the DSH Chrome app window only if it is not already running, so a
 ' restart never stacks a duplicate window.
-checkCmd = "powershell -NoProfile -Command ""$p = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'chrome*' -and $_.CommandLine -like '*hgiemfgfjhalibdoboikeiepnnjapnpc*' }; if ($p) { exit 0 } else { exit 1 }"""
+checkCmd = "pwsh -NoProfile -Command ""$p = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'chrome*' -and $_.CommandLine -like '*hgiemfgfjhalibdoboikeiepnnjapnpc*' }; if ($p) { exit 0 } else { exit 1 }"""
 rc = shell.Run(checkCmd, 0, True)
 If rc <> 0 Then
   shell.Run """C:\Users\Administrator\Desktop\DeepSeek Harness.lnk"""
