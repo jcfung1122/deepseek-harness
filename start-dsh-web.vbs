@@ -12,4 +12,10 @@ Set f = fso.CreateTextFile("D:\github\deepseek-harness\.dsh-web.pid", True)
 f.Write pid
 f.Close
 WScript.Sleep 8000
-shell.Run """C:\Users\Administrator\Desktop\DeepSeek Harness.lnk"""
+' Open the DSH Chrome app window only if it is not already running, so a
+' re-launch never stacks a duplicate window.
+checkCmd = "powershell -NoProfile -Command ""$p = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'chrome*' -and $_.CommandLine -like '*hgiemfgfjhalibdoboikeiepnnjapnpc*' }; if ($p) { exit 0 } else { exit 1 }"""
+rc = shell.Run(checkCmd, 0, True)
+If rc <> 0 Then
+  shell.Run """C:\Users\Administrator\Desktop\DeepSeek Harness.lnk"""
+End If
