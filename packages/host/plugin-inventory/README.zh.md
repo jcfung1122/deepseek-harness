@@ -6,7 +6,7 @@
 
 阶段为 `pending`、`loading`、`active`、`failed` 或 `unloading`；条目没有存活的根 Fiber 时则为 `null`。该快照刻意只表示调用当下：Loader 仍是唯一的生命周期权威，本包不拥有缓存、历史或来源模型；其唯一的修改是每个条目的启用/停用开关，运行时效果走 Loader 的 inject 等待（被停用条目的依赖方保持 pending，直到它恢复）。该修改是会话级的：Web profile 的根 `cordis.yml` 每次启动都被重写为空，因此开关不会写入用户持久化的 patch 层。公开 payload 类型位于 `./types`，Typert 生成由 `./typert` 与 `./remote` 导出的 Host 和 Client Remote 产物。
 
-该服务仅供 Remote 使用，刻意不声明同进程 Cordis `Context` merge。Client 包通过显式的 [`api-remotes`](../../api/remotes/README.md) 组合消费它，而不导入 Host 实现。
+该服务仅供 Remote 使用，刻意不声明同进程 Cordis `Context` merge。Client 包通过显式的 [`api-remotes`](../../api/remotes/README.zh.md) 组合消费它，而不导入 Host 实现。
 
 ## 模型体验
 
